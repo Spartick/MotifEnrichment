@@ -60,7 +60,7 @@ PWMFromHits <- function(min_bitratio = 1.5,
     query_results <- blast_results[blast_results$QueryID == query_ids[i],]
 
     #Initialize empty matrix to hold aligned sequences
-    max_length <- nchar(dna_q[i])
+    max_length <- length(dna_q[i])
     num_queries <- nrow(query_results)
     aligned_seqs <- matrix("", nrow = num_queries, ncol = max_length)
 
