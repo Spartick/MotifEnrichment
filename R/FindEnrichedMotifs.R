@@ -3,7 +3,7 @@
 #' This function takes in an input list of promoters of interest, control promoters, and a custom database of promoters.
 #' It splits up promoters of interest into "bits" and BLASTs each bit against all other promoters.
 #' Promoters that are found more in your promoters of interest list, than in the control promoters list are considered enriched.
-#' Several parameters can be ajusted to increase or decrease precision of BLASTs, and to reduce running time.
+#' Several parameters can be adjusted to increase or decrease precision of BLASTs, and to reduce running time.
 #'
 #' @param promoters_input Promoters of interest input file
 #' @param c_promoters_input Control promoters input file
@@ -114,7 +114,9 @@ FindEnrichedMotifs <- function(Job_name,
 
   #convert bitsframe to DNA string
   print("Aligning bits...")
+
   dna <- Biostrings::DNAStringSet(bitsframe$bitSeq)
+  names(dna) <- bitsframe$bitID
 
   #Run BLASTS and store hits
   Hitsframe <- data.frame(bitID = character(),
@@ -123,49 +125,42 @@ FindEnrichedMotifs <- function(Job_name,
                           bitratio = numeric(),
                           stringsAsFactors = F)
 
+
+  resex <- predict(blex, dna, BLAST_args = paste0("-task \"blastn-short\"",
+                                                     " -num_threads ", num_threads,
+                                                     " -word_size ", min_match_size,
+                                                     " -gapopen ", gap_open,
+                                                     " -gapextend ", gap_extend,
+                                                     " -penalty ", penalty_mismatch,
+                                                     " -evalue ", e_value,
+                                                     " -reward ", match_reward))
+
+  resco <- predict(blco, dna, BLAST_args = paste0("-task \"blastn-short\"",
+                                                     " -num_threads ", num_threads,
+                                                     " -word_size ", min_match_size,
+                                                     " -gapopen ", gap_open,
+                                                     " -gapextend ", gap_extend,
+                                                     " -penalty ", penalty_mismatch,
+                                                     " -evalue ", e_value,
+                                                     " -reward ", match_reward))
+  print("Finished.")
+
+  print("Estimating ratios...")
   Sys.time.start <- Sys.time()
   p100 <- nrow(bitsframe)
   for (z in 1:p100) {
 
-    if (z %% round(p100 / 100) == 0) {
-      #Estimate remaining runtime
-      progress <- 10 / p100 * 100
-      Sys.time.current <- Sys.time()
-      diff.time <- Sys.time.current - Sys.time.start
-      est.runtime <- diff.time / progress * (100 - progress)
-      cat("Estimated remaining time:", est.runtime / 60, "minutes.\n")
+    current_bit <- bitsframe$bitID[z]
+    Hitsframe[z,1] <- current_bit
 
-      response <- readline(prompt = "Continue? (y/n) ")
+    selected_resex <- resex[resex$QueryID %in% current_bit,]
+    selected_resco <- resco[resco$QueryID %in% current_bit,]
 
-      if (response == "n") {
-        # exit the loop if the user does not want to continue
-        break
-      }
-
-    }
-
-    Hitsframe[z,1] <- bitsframe$bitID[z]
-    resex <- predict(blex, dna[z], BLAST_args = paste0("-task \"blastn-short\"",
-                                                       " -num_threads ", num_threads,
-                                                       " -word_size ", min_match_size,
-                                                       " -gapopen ", gap_open,
-                                                       " -gapextend ", gap_extend,
-                                                       " -penalty ", penalty_mismatch,
-                                                       " -evalue ", e_value,
-                                                       " -reward ", match_reward))
-    resco <- predict(blex, dna[z], BLAST_args = paste0("-task \"blastn-short\"",
-                                                       " -num_threads ", num_threads,
-                                                       " -word_size ", min_match_size,
-                                                       " -gapopen ", gap_open,
-                                                       " -gapextend ", gap_extend,
-                                                       " -penalty ", penalty_mismatch,
-                                                       " -evalue ", e_value,
-                                                       " -reward ", match_reward))
-    Hitsframe[z,2] <- nrow(resex)
-    Hitsframe[z,3] <- nrow(resco)
+    Hitsframe[z,2] <- nrow(selected_resex)
+    Hitsframe[z,3] <- nrow(selected_resco)
     Hitsframe[z,4] <- Hitsframe[z,2] / Hitsframe[z,3]
 
-    if (z %% 10 == 0) {
+    if (z %% 100 == 0) {
       percentage <- round((z / p100) * 100, digits = 2)
       print(paste0('Finished: ', percentage, '%'))
     }

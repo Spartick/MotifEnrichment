@@ -1,6 +1,6 @@
 Package: MotifEnrichment
 Title: Find conserved sequence enrichment in promoters of interest
-Version: 0.0.0.9000
+Version: 0.0.1.0000
 Authors@R: 
     person("Tobias", "de Werk", , "tobias.dewerk@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "YOUR-ORCID-ID"))
@@ -13,4 +13,6 @@ RoxygenNote: 7.2.3
 Imports:
   Biostrings,
   stringr,
-  rBLAST
+  rBLAST,
+  ggplot2,
+  ggseqlogo
