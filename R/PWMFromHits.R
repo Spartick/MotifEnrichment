@@ -75,7 +75,7 @@ PWMFromHits <- function(min_bitratio = 1.5,
       } else {
         alignment_start <- s_end - (q_size-q_end)
         alignment_end <- alignment_start + q_size - 1
-        aligned_seq <- Biostrings::reverseComplement(DNAString(substr(seq, alignment_start, alignment_end)))
+        aligned_seq <- Biostrings::reverseComplement(Biostrings::DNAString(substr(seq, alignment_start, alignment_end)))
         aligned_seq <- as.character(aligned_seq)
 
         if (nchar(aligned_seq) < q_size) {
