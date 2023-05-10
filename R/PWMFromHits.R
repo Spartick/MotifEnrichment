@@ -47,7 +47,7 @@ PWMFromHits <- function(min_bitratio = 1.5,
     query_results <- blast_results[blast_results$QueryID == query_ids[i],]
 
     #Initialize empty matrix to hold aligned sequences
-    max_length <- nchar(dna_q[i])
+    max_length <- nchar(dna_q[[i]])
     num_queries <- nrow(query_results)
     aligned_seqs <- matrix("", nrow = num_queries, ncol = max_length)
 
@@ -60,7 +60,7 @@ PWMFromHits <- function(min_bitratio = 1.5,
       s_end <- query_results[j, 'S.end']
       q_start <- query_results[j, 'Q.start']
       q_end <- query_results[j, 'Q.end']
-      q_size <- nchar(dna_q[i])
+      q_size <- nchar(dna_q[[i]])
 
       if (s_start < s_end) {
         #If the alignment is in sense: Calculate subject start and end
