@@ -1,5 +1,5 @@
 #' This function returns PWMs and seqlogos of enriched queries.
-#' @param input A hitsframe containing enriched queries
+#' @param data A hitsframe containing enriched queries
 #' @return A results dataframe containing PWMs and plots for each input query
 #' @export
 PWMFromHits <- function(min_bitratio = 1.5,
@@ -11,29 +11,16 @@ PWMFromHits <- function(min_bitratio = 1.5,
                         match_reward = 1,
                         e_value = 10,
                         promoter_data = 'All Tomato 2k promoters.csv',
-                        input = input){
-
-  #User inputs
-  #min_bitratio <- 1.5
-  #num_threads <- 3
-  #min_match_size <- 4
-  #gap_open <- 0
-  #gap_extend <- 2
-  #penalty_mismatch <- -2
-  #match_reward <- 1
-  #e_value <- 10
-  #promoter_data <- 'All Tomato 2k promoters.csv'
+                        data = data){
 
   All_Tomato_promoters <- read.csv(promoter_data, sep = ";")
 
   #Make BLAST objects
   rBLAST::makeblastdb('C:\\db\\experimental.fa', dbtype = "nucl")
-  rBLAST::makeblastdb('C:\\db\\control.fa', dbtype = "nucl")
   blex <- rBLAST::blast(db="C:\\db\\experimental.fa")
-  blco <- rBLAST::blast(db="C:\\db\\control.fa")
 
   #Select enriched bits for further analysis
-  Hitsframe <- input
+  Hitsframe <- data
   Hitsframe <- subset(Hitsframe, Hitsframe$bitratio >= min_bitratio)
   Hitsframe <- Hitsframe[order(Hitsframe$bitratio),]
   dna_q <- Biostrings::DNAStringSet(Hitsframe$bitSeq)
@@ -60,7 +47,7 @@ PWMFromHits <- function(min_bitratio = 1.5,
     query_results <- blast_results[blast_results$QueryID == query_ids[i],]
 
     #Initialize empty matrix to hold aligned sequences
-    max_length <- nchar(Hitsframe[Hitsframe$bitID %in% query_ids[i],'bitSeq'])
+    max_length <- nchar(dna_q[i])
     num_queries <- nrow(query_results)
     aligned_seqs <- matrix("", nrow = num_queries, ncol = max_length)
 
@@ -73,7 +60,7 @@ PWMFromHits <- function(min_bitratio = 1.5,
       s_end <- query_results[j, 'S.end']
       q_start <- query_results[j, 'Q.start']
       q_end <- query_results[j, 'Q.end']
-      q_size <- nchar(Hitsframe[Hitsframe$bitID %in% query_ids[i],'bitSeq'])
+      q_size <- nchar(dna_q[i])
 
       if (s_start < s_end) {
         #If the alignment is in sense: Calculate subject start and end

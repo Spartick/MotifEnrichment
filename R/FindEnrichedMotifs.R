@@ -9,7 +9,7 @@
 #' @param c_promoters_input Control promoters input file
 #' @return A hitsframe containing enrichment of each specific bit
 #' @export
-FindEnrichedMotifs <- function(Job_name,
+FindEnrichedMotifs <- function(Job_name = 'Test-y',
                                comp_filter = TRUE,
                                com_threshold = 0.9,
                                bit_size = 16,
@@ -26,23 +26,12 @@ FindEnrichedMotifs <- function(Job_name,
                                promoters_input = 'input.txt',
                                c_promoters_input = 'control.txt') {
 
-  #User inputs:
-  #Job_name <- 'top20induced'
-  #comp_filter <- TRUE     #Determines if low complexity bits should be removed (FALSE by default)
-  #com_threshold <- 0.9    #If true, determines complexity threshold (AT and GC content higher than this will be filtered)
-  #bit_size <- 16          #Set the size of each bit to be BLASTed
-  #bit_step <- 5           #Set the number of nucleotides to be stepped in generating bits
-  #promoter_size <- 1000   #Set the promoter size (max = 2000)
-  #min_bitratio <- 1.5     #Sets the minimum ratio of enrichment for hits between promoters of interest and control promoters
+  #Check and make directory
+  Sys.time.start <- Sys.time()
 
-  #BLAST parameters
-  #num_threads <- 3
-  #min_match_size <- 4     #Default: 4
-  #gap_open <- 0           #Default: 0
-  #gap_extend <- 2         #Default: 2
-  #penalty_mismatch <- -2  #Default: -2
-  #match_reward <- 1       #Default: 1
-  #e_value <- 10           #Default: 10
+  if (dir.exists(paste0('./', Job_name)) == FALSE) {
+    dir.create(paste0('./', Job_name))
+  }
 
   promoters_of_interest <- readLines(promoters_input)
   control_promoters_input <- readLines(c_promoters_input)
@@ -58,7 +47,7 @@ FindEnrichedMotifs <- function(Job_name,
   Control_promoters_df <- Control_promoters_df[1:nrow(Selected_promoters_df),]
 
   #Generate bitstable
-  print("Generating bits...")
+  cat("Generating bits...")
   iterations <- round((promoter_size - bit_size) / bit_step)
   current_iteration <- NULL
   bitsframe <- data.frame(bitID = character(),
@@ -88,6 +77,10 @@ FindEnrichedMotifs <- function(Job_name,
   if (comp_filter == TRUE) {
     bitsframe <- subset(bitsframe, bitsframe$ATcontent <= com_threshold)
     bitsframe <- subset(bitsframe, bitsframe$GCcontent <= com_threshold)
+    bitsframe <- bitsframe[!grepl('TTTTT', bitsframe$bitSeq),]
+    bitsframe <- bitsframe[!grepl('AAAAA', bitsframe$bitSeq),]
+    bitsframe <- bitsframe[!grepl('CCCCC', bitsframe$bitSeq),]
+    bitsframe <- bitsframe[!grepl('GGGGG', bitsframe$bitSeq),]
   }
 
   print("Done.")
@@ -127,26 +120,25 @@ FindEnrichedMotifs <- function(Job_name,
 
 
   resex <- predict(blex, dna, BLAST_args = paste0("-task \"blastn-short\"",
-                                                     " -num_threads ", num_threads,
-                                                     " -word_size ", min_match_size,
-                                                     " -gapopen ", gap_open,
-                                                     " -gapextend ", gap_extend,
-                                                     " -penalty ", penalty_mismatch,
-                                                     " -evalue ", e_value,
-                                                     " -reward ", match_reward))
+                                                  " -num_threads ", num_threads,
+                                                  " -word_size ", min_match_size,
+                                                  " -gapopen ", gap_open,
+                                                  " -gapextend ", gap_extend,
+                                                  " -penalty ", penalty_mismatch,
+                                                  " -evalue ", e_value,
+                                                  " -reward ", match_reward))
 
   resco <- predict(blco, dna, BLAST_args = paste0("-task \"blastn-short\"",
-                                                     " -num_threads ", num_threads,
-                                                     " -word_size ", min_match_size,
-                                                     " -gapopen ", gap_open,
-                                                     " -gapextend ", gap_extend,
-                                                     " -penalty ", penalty_mismatch,
-                                                     " -evalue ", e_value,
-                                                     " -reward ", match_reward))
-  print("Finished.")
+                                                  " -num_threads ", num_threads,
+                                                  " -word_size ", min_match_size,
+                                                  " -gapopen ", gap_open,
+                                                  " -gapextend ", gap_extend,
+                                                  " -penalty ", penalty_mismatch,
+                                                  " -evalue ", e_value,
+                                                  " -reward ", match_reward))
+  cat("Finished.")
 
-  print("Estimating ratios...")
-  Sys.time.start <- Sys.time()
+  cat("Estimating ratios...")
   p100 <- nrow(bitsframe)
   for (z in 1:p100) {
 
@@ -172,8 +164,9 @@ FindEnrichedMotifs <- function(Job_name,
   #Finishing up
   Sys.time.current <- Sys.time()
   diff.time <- Sys.time.current - Sys.time.start
-  cat("Finished in:", diff.time / 60, "minutes.\n")
+  diff.time
 
+  write.csv(Hitsframe, file = paste0('./', Job_name, '/Hitsframe.csv'))
   return(Hitsframe)
 
 }

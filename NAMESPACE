@@ -2,3 +2,4 @@
 
 export(FindEnrichedMotifs)
 export(PWMFromHits)
+export(ShowEnrichedLocations)

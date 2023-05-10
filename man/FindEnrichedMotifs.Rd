@@ -5,7 +5,7 @@
 \title{Find conserved sequences that are enriched specifically in your promoters of interest vs. control promoters}
 \usage{
 FindEnrichedMotifs(
-  Job_name,
+  Job_name = "Test-y",
   comp_filter = TRUE,
   com_threshold = 0.9,
   bit_size = 16,

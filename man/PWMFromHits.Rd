@@ -14,11 +14,11 @@ PWMFromHits(
   match_reward = 1,
   e_value = 10,
   promoter_data = "All Tomato 2k promoters.csv",
-  input = input
+  data = data
 )
 }
 \arguments{
-\item{input}{A hitsframe containing enriched queries}
+\item{data}{A hitsframe containing enriched queries}
 }
 \value{
 A results dataframe containing PWMs and plots for each input query
