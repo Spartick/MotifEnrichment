@@ -15,4 +15,6 @@ Imports:
   stringr,
   rBLAST,
   ggplot2,
-  ggseqlogo
+  ggseqlogo,
+  stats,
+  msa
