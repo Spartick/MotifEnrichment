@@ -12,7 +12,7 @@ ShowEnrichedLocations <- function(Job_name = 'Test-y',
                                   e_value = 10,
                                   promoter_data = 'All Tomato 2k promoters.csv',
                                   data = Hitsframe,
-                                  promoter_size = 100,
+                                  promoter_size = 1000,
                                   Comp_Filter = TRUE,
                                   filter_strength = 0.8,
                                   return_f = 'txt'){
@@ -28,7 +28,10 @@ ShowEnrichedLocations <- function(Job_name = 'Test-y',
 
   #Prepare promoters
   All_Tomato_promoters <- read.csv(promoter_data, sep = ";")
-  Sized_promoters <- substr(All_Tomato_promoters$Sequence, 1, promoter_size)
+  sequence_length <- nchar(All_Tomato_promoters$Sequence)
+  start_point <- sequence_length - promoter_size + 1
+  end_point <- sequence_length
+  Sized_promoters <- substr(All_Tomato_promoters$Sequence, start_point, end_point)
   All_Tomato_promoters$Sequence <- Sized_promoters
 
   #Prepare bits for sequence extraction

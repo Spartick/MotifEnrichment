@@ -38,11 +38,20 @@ FindEnrichedMotifs <- function(Job_name = 'Test-y',
 
   #Promoter inputs
   All_Tomato_promoters <- read.csv("All Tomato 2k promoters.csv", sep = ";")
+
+  #Cut promoters to input size
   Selected_promoters_df <- All_Tomato_promoters[All_Tomato_promoters$LocusID %in% promoters_of_interest,]
-  Selected_promoters <- substr(Selected_promoters_df$Sequence, 1, promoter_size)
+  sequence_length <- nchar(Selected_promoters_df$Sequence)
+  start_point <- sequence_length - promoter_size + 1
+  end_point <- sequence_length
+  Selected_promoters <- substr(Selected_promoters_df$Sequence, start_point, end_point)
   Selected_promoters_df$Sequence <- Selected_promoters
+
   Control_promoters_df <- All_Tomato_promoters[All_Tomato_promoters$LocusID %in% control_promoters_input,]
-  Control_promoters_cut <- substr(Control_promoters_df$Sequence, 1, promoter_size)
+  sequence_length_c <- nchar(Control_promoters_df$Sequence)
+  start_point_c <- sequence_length_c - promoter_size + 1
+  end_point_c <- sequence_length_c
+  Control_promoters_cut <- substr(Control_promoters_df$Sequence, start_point_c, end_point_c)
   Control_promoters_df$Sequence <- Control_promoters_cut
   Control_promoters_df <- Control_promoters_df[1:nrow(Selected_promoters_df),]
 
@@ -77,10 +86,6 @@ FindEnrichedMotifs <- function(Job_name = 'Test-y',
   if (comp_filter == TRUE) {
     bitsframe <- subset(bitsframe, bitsframe$ATcontent <= com_threshold)
     bitsframe <- subset(bitsframe, bitsframe$GCcontent <= com_threshold)
-    bitsframe <- bitsframe[!grepl('TTTTT', bitsframe$bitSeq),]
-    bitsframe <- bitsframe[!grepl('AAAAA', bitsframe$bitSeq),]
-    bitsframe <- bitsframe[!grepl('CCCCC', bitsframe$bitSeq),]
-    bitsframe <- bitsframe[!grepl('GGGGG', bitsframe$bitSeq),]
   }
 
   print("Done.")
@@ -103,10 +108,10 @@ FindEnrichedMotifs <- function(Job_name = 'Test-y',
   blex <- rBLAST::blast(db="C:\\db\\experimental.fa")
   blco <- rBLAST::blast(db="C:\\db\\control.fa")
 
-  print("Done.")
+  cat("Done.\n")
 
   #convert bitsframe to DNA string
-  print("Aligning bits...")
+  cat("Aligning bits...")
 
   dna <- Biostrings::DNAStringSet(bitsframe$bitSeq)
   names(dna) <- bitsframe$bitID
@@ -154,7 +159,7 @@ FindEnrichedMotifs <- function(Job_name = 'Test-y',
 
     if (z %% 100 == 0) {
       percentage <- round((z / p100) * 100, digits = 2)
-      print(paste0('Finished: ', percentage, '%'))
+      cat('Finished: ', percentage, '%')
     }
 
   }
@@ -164,7 +169,7 @@ FindEnrichedMotifs <- function(Job_name = 'Test-y',
   #Finishing up
   Sys.time.current <- Sys.time()
   diff.time <- Sys.time.current - Sys.time.start
-  diff.time
+  cat(diff.time)
 
   write.csv(Hitsframe, file = paste0('./', Job_name, '/Hitsframe.csv'))
   return(Hitsframe)
